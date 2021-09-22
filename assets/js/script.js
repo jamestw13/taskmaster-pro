@@ -66,11 +66,13 @@ $(".list-group").on("blur", "textarea", function () {
 	$(this).replaceWith(taskP);
 });
 
+// make "Trash" droppable
 $("#trash").droppable({
 	accept: ".card .list-group-item",
 	tolerance: "touch",
 	drop: function (event, ui) {
 		console.log("drop");
+		ui.draggable.remove();
 	},
 	over: function (event, ui) {
 		console.log("over");
@@ -141,10 +143,10 @@ $(".card .list-group").sortable({
 					text: text,
 					date: date,
 				});
-				var arrName = $(this).attr("id").replace("list-", "");
-				tasks[arrName] = tempArr;
-				saveTasks();
 			});
+		var arrName = $(this).attr("id").replace("list-", "");
+		tasks[arrName] = tempArr;
+		saveTasks();
 
 		console.log(tempArr);
 	},
