@@ -9,6 +9,9 @@ var createTask = function (taskText, taskDate, taskList) {
 	// append span and p element to parent li
 	taskLi.append(taskSpan, taskP);
 
+	// check due date
+	auditTask(taskLi);
+
 	// append to ul list on the page
 	$("#list-" + taskList).append(taskLi);
 };
@@ -34,6 +37,26 @@ var loadTasks = function () {
 			createTask(task.text, task.date, list);
 		});
 	});
+};
+
+var auditTask = function (taskEl) {
+	// get date from task element
+	var date = $(taskEl).find("span").text().trim();
+	// ensure it worked
+	console.log(date);
+
+	// convert to moment object at 5:00pm
+	var time = moment(date, "L").set("hour", 17);
+
+	// remove old classes from element
+	$(taskEl).removeClass("list-group-item-warning list-group-item-danger");
+
+	// apply new class vis-a-vis due date
+	if (moment().isAfter(time)) {
+		$(taskEl).addClass("list-group-item-danger");
+	} else if (Math.abs(moment().diff(time, "days")) <= 2) {
+		$(taskEl).addClass("list-group-item-warning");
+	}
 };
 
 var saveTasks = function () {
@@ -87,10 +110,17 @@ $(".list-group").on("click", "span", function () {
 	var date = $(this).text().trim();
 	var dateInput = $("<input>").attr("type", "text").addClass("form-control").val(date);
 	$(this).replaceWith(dateInput);
+	dateInput.datepicker({
+		// minDate: 1,
+		onClose: function () {
+			// when calendar is closed, force a "change event on the `dateInput`"
+			$(this).trigger("change");
+		},
+	});
 	dateInput.trigger("focus");
 });
 
-$(".list-group").on("blur", "input[type='text']", function () {
+$(".list-group").on("change", "input[type='text']", function () {
 	// get the input's current value/text
 	var date = $(this).val().trim();
 
@@ -107,8 +137,11 @@ $(".list-group").on("blur", "input[type='text']", function () {
 	var taskSpan = $("<span>").addClass("badge badge-primary badge-pill").text(date);
 
 	$(this).replaceWith(taskSpan);
+
+	auditTask($(taskSpan).closest(".list-group-item"));
 });
 
+// make task list cards sortable
 $(".card .list-group").sortable({
 	connectWith: $(".card .list-group"),
 	scroll: false,
@@ -163,6 +196,9 @@ $("#task-form-modal").on("shown.bs.modal", function () {
 	// highlight textarea
 	$("#modalTaskDescription").trigger("focus");
 });
+
+// modal datepicker
+$("#modalDueDate").datepicker({minDate: 1});
 
 // save button in modal was clicked
 $("#task-form-modal .btn-primary").click(function () {
